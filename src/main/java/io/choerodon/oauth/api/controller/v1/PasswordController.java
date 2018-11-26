@@ -1,39 +1,61 @@
 package io.choerodon.oauth.api.controller.v1;
 
-import java.util.Map;
+import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
+import io.choerodon.oauth.api.service.SystemSettingService;
+import io.choerodon.oauth.infra.dataobject.SystemSettingDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
-import io.choerodon.oauth.api.dto.RegisterFormDTO;
-import io.choerodon.oauth.app.service.PasswordForgetService;
-import io.choerodon.oauth.infra.dataobject.NotifyToken;
-import io.choerodon.oauth.infra.feign.NotificationFeign;
+import io.choerodon.oauth.api.dto.CaptchaCheckDTO;
+import io.choerodon.oauth.api.dto.PasswordForgetDTO;
+import io.choerodon.oauth.api.service.PasswordForgetService;
+import io.choerodon.oauth.api.service.PasswordPolicyService;
+import io.choerodon.oauth.api.service.UserService;
+import io.choerodon.oauth.infra.dataobject.PasswordPolicyDO;
+import io.choerodon.oauth.infra.enums.PasswordFindException;
 
 /**
  * @author wuguokai
  */
 @Controller
+@RequestMapping("/password")
 public class PasswordController {
 
+    private static final String DEFAULT_PAGE = "password-find";
+    @Autowired
     private PasswordForgetService passwordForgetService;
-    private NotificationFeign notificationFeign;
+    @Autowired
+    private PasswordPolicyService passwordPolicyService;
+    @Autowired
+    private UserService userService;
     @Autowired
     private MessageSource messageSource;
+    @Autowired
+    private SystemSettingService systemSettingService;
 
-    public PasswordController(PasswordForgetService passwordForgetService, NotificationFeign notificationFeign) {
+
+    public void setPasswordForgetService(PasswordForgetService passwordForgetService) {
         this.passwordForgetService = passwordForgetService;
-        this.notificationFeign = notificationFeign;
+    }
+
+    public void setMessageSource(MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
+
+    public void setPasswordPolicyService(PasswordPolicyService passwordPolicyService) {
+        this.passwordPolicyService = passwordPolicyService;
+    }
+
+    public void setUserService(UserService userService) {
+        this.userService = userService;
     }
 
     /**
@@ -41,91 +63,94 @@ public class PasswordController {
      *
      * @return path
      */
-    @RequestMapping(value = "/forgetPassword", method = RequestMethod.GET)
-    public String find() {
-        return "password-find";
-    }
-
-    /**
-     * 验证邮箱和页面验证码
-     *
-     * @param registerForm registerForm
-     * @param session      session
-     * @return map
-     */
-    @RequestMapping(value = "/password/email", method = RequestMethod.POST)
-    public ResponseEntity<Map<String, String>> checkEmailAndCode(@ModelAttribute RegisterFormDTO registerForm, HttpSession session) {
-        String captchaCode = ((String) session.getAttribute("captchaCode")).toLowerCase();
-        String captcha = registerForm.getCaptcha().toLowerCase();
-        String emailAddress = registerForm.getEmailAddress();
-        return passwordForgetService.checkMailCode(session, emailAddress, captchaCode, captcha);
-    }
-
-    /**
-     * 发送验证码
-     *
-     * @param request request
-     * @return 是否成功
-     */
-    @RequestMapping(value = "/password/code", method = RequestMethod.POST)
-    public ResponseEntity<Boolean> sendNotifyToken(HttpServletRequest request) {
-        String emailAddress = request.getParameter("emailAddress");
-        if (emailAddress != null) {
-            request.getSession().setAttribute("emailAddress", emailAddress);
+    @GetMapping(value = "/find")
+    public String find(HttpServletRequest request, Model model) {
+        request.getSession().removeAttribute("userId");
+        request.getSession().removeAttribute("userName");
+        SystemSettingDO systemSettingDO = systemSettingService.getSetting();
+        if (systemSettingDO == null) {
+            systemSettingDO = new SystemSettingDO();
         }
-        return passwordForgetService.sendNotifyToken(request, emailAddress);
+        model.addAttribute("systemName", systemSettingDO.getSystemName());
+        if (systemSettingDO.getSystemLogo() != null)
+            model.addAttribute("systemLogo", systemSettingDO.getSystemLogo().equals(new String("")) ? null : systemSettingDO.getSystemLogo()); // 为模版引擎统一数据
+        model.addAttribute("systemTitle", systemSettingDO.getSystemTitle());
+        if(systemSettingDO.getFavicon() != null)
+            model.addAttribute("favicon", systemSettingDO.getFavicon().equals(new String("")) ? null : systemSettingDO.getFavicon()); // 为模版引擎统一数据
+        return DEFAULT_PAGE;
     }
 
-    /**
-     * 验证邮箱验证码
-     *
-     * @param verificationCode verificationCode
-     * @param request          request
-     * @return 验证信息
-     */
-    @RequestMapping(value = "/password/{verificationCode}", method = RequestMethod.GET)
-    public ResponseEntity<String> verificationCode(@PathVariable String
-                                                           verificationCode, HttpServletRequest request) {
-        HttpSession session = request.getSession();
-        Long notifyTokenId = (Long) session.getAttribute("notifyTokenId");
-        if (notifyTokenId == null) {
-            String res = "验证码错误";
-            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+
+    @PostMapping(value = "/send")
+    @ResponseBody
+    public ResponseEntity<PasswordForgetDTO> send(@RequestParam("emailAddress") String emailAddress) {
+        PasswordForgetDTO passwordForgetDTO = passwordForgetService.checkUserByEmail(emailAddress);
+        if (!passwordForgetDTO.getSuccess()) {
+            return new ResponseEntity<>(passwordForgetDTO, HttpStatus.OK);
         }
-        NotifyToken notifyToken = notificationFeign.findNotifyToken(notifyTokenId).getBody();
-        if (notifyToken != null && verificationCode.equalsIgnoreCase(notifyToken.getToken())) {
-            String res = "验证码正确";
-            return new ResponseEntity<>(res, HttpStatus.OK);
-        } else {
-            String res = "验证码错误";
-            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
-        }
+        return new ResponseEntity<>(passwordForgetService.send(passwordForgetDTO), HttpStatus.OK);
     }
 
-    /**
-     * 重置密码
-     *
-     * @param request request
-     * @return 验证信息
-     */
-    @RequestMapping(value = "/password/reset", method = RequestMethod.POST)
+    @PostMapping(value = "/check")
+    @ResponseBody
+    public ResponseEntity<CaptchaCheckDTO> check(
+            @RequestParam("emailAddress") String emailAddress,
+            @RequestParam("captcha") String captcha) {
+        CaptchaCheckDTO check;
+        PasswordForgetDTO passwordForgetDTO = passwordForgetService.checkUserByEmail(emailAddress);
+        if (!passwordForgetDTO.getSuccess()) {
+            check = new CaptchaCheckDTO(passwordForgetDTO, null);
+            return new ResponseEntity<>(check, HttpStatus.OK);
+        }
+        PasswordForgetDTO passwordForgetCheck = passwordForgetService.check(passwordForgetDTO, captcha);
+        if (!passwordForgetCheck.getSuccess()) {
+            check = new CaptchaCheckDTO(passwordForgetCheck, null);
+            return new ResponseEntity<>(check, HttpStatus.OK);
+        }
+        PasswordPolicyDO passwordPolicyDO = passwordPolicyService.queryByOrgId(userService.queryByEmail(emailAddress).getOrganizationId());
+        check = new CaptchaCheckDTO(passwordForgetCheck, passwordPolicyDO);
+        return new ResponseEntity<>(check, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/reset")
+    @ResponseBody
     @Transactional(rollbackFor = Exception.class)
-    public ResponseEntity<String> resetPassword(HttpServletRequest request) {
-        HttpSession session = request.getSession();
-        Long userId = (Long) session.getAttribute("userId");
-        String password = request.getParameter("password");
-        Long notifyTokenId = (Long) session.getAttribute("notifyTokenId");
-        NotifyToken notifyToken = notificationFeign.findNotifyToken(notifyTokenId).getBody();
-        String msg = "reset.failed";
-        if (notifyToken == null) {
-            msg = "notifyToken.wrong";
-        } else {
-            Boolean isReset = passwordForgetService.reset(userId, password);
-            if (isReset) {
-                notificationFeign.deleteNotifyToken(notifyTokenId);
-                msg = "reset.success";
-            }
+    public ResponseEntity<PasswordForgetDTO> reset(
+            @RequestParam("emailAddress") String emailAddress,
+            @RequestParam("captcha") String captcha,
+            @RequestParam("userId") Long userId,
+            @RequestParam("password") String pwd,
+            @RequestParam("password1") String pwd1) {
+        PasswordForgetDTO passwordForgetDTO;
+        if (!pwd.equals(pwd1)) {
+            passwordForgetDTO = new PasswordForgetDTO(false);
+
+            passwordForgetDTO.setCode(PasswordFindException.PASSWORD_NOT_EQUAL.value());
+            passwordForgetDTO.setMsg(messageSource.getMessage(PasswordFindException.PASSWORD_NOT_EQUAL.value(), null, Locale.ROOT));
+            return new ResponseEntity<>(passwordForgetDTO, HttpStatus.OK);
         }
-        return new ResponseEntity<>(msg, HttpStatus.OK);
+
+        passwordForgetDTO = passwordForgetService.checkUserByEmail(emailAddress);
+        if (!passwordForgetDTO.getSuccess()) {
+            return new ResponseEntity<>(passwordForgetDTO, HttpStatus.OK);
+        }
+        if (!userId.equals(passwordForgetDTO.getUser().getId())) {
+            passwordForgetDTO = new PasswordForgetDTO(false);
+            passwordForgetDTO.setCode(PasswordFindException.USER_IS_ILLEGAL.value());
+            passwordForgetDTO.setMsg(messageSource.getMessage(PasswordFindException.USER_IS_ILLEGAL.value(), null, Locale.ROOT));
+            return new ResponseEntity<>(passwordForgetDTO, HttpStatus.OK);
+        }
+        passwordForgetDTO = passwordForgetService.check(passwordForgetDTO, captcha);
+        if (!passwordForgetDTO.getSuccess()) {
+            return new ResponseEntity<>(passwordForgetDTO, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(passwordForgetService.reset(passwordForgetDTO, captcha, pwd), HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/check_disable")
+    @ResponseBody
+    @Transactional(rollbackFor = Exception.class)
+    public ResponseEntity<PasswordForgetDTO> checkDisable(@RequestParam("emailAddress") String emailAddress) {
+        return new ResponseEntity<>(passwordForgetService.checkDisable(emailAddress), HttpStatus.OK);
     }
 }

@@ -9,11 +9,12 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
-    <link rel="shortcut icon" href="static/icon.ico" type="image/x-icon"/>
+    <link rel="shortcut icon" th:if="${favicon}" th:href="${favicon}"  type="image/x-icon"/>
+    <link rel="shortcut icon" th:unless="${favicon}" th:href="${'static/icon.ico'}"  type="image/x-icon"/>
     <script src="static/jquery.min.js"></script>
     <script th:src="@{static/mobile.js(t=${new java.util.Date().getTime()})}"></script>
-    <title th:text="${title}"></title>
-    <title>Choerodon</title>
+    <title th:if="${systemTitle}" th:text="${systemTitle}"></title>
+    <title th:if="!${systemTitle}" th:text="Choerodon"></title>
     <style>
         html, body {
             padding: 0px;
@@ -75,11 +76,6 @@
             color: rgba(0, 0, 0, 0.87);
         }
 
-        .logoleftfont {
-            color: #3F51B5;
-            font-size: 1rem;
-        }
-
         .input-icon.left i {
             color: #ccc;
             display: block !important;
@@ -130,7 +126,17 @@
             border-radius: 0px;
             background: transparent;
         }
-
+        .pIcon {
+            color: #3F51B5;
+            height: 30px;
+        }
+        .pText {
+            line-height: 48px;
+            height: 48px;
+            margin-left: 8px;
+            font-size: 24px;
+            color: #rgba(0, 0, 0, 0.65);
+        }
         .login #content .form-actions {
             clear: both;
             padding: 10px 0 10px 0;
@@ -177,34 +183,11 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        .fa-user:before {
-            content: "\f007";
-        }
-
-        .fa-user-md:before {
-            content: "\f0f0";
-        }
-
-        .fa-lock:before {
-            content: "\f023";
-        }
 
         .fa-refresh:before {
             content: "\f021";
         }
 
-        .fa-arrow-right:before {
-            content: "\f061";
-        }
-
-        .fa-align-justify:before {
-            content: "\f039";
-        }
-
-        .arrow {
-            float: right;
-            font-size: 1.6rem;
-        }
 
         #list {
             float: right;
@@ -239,14 +222,13 @@
 <body class="login">
 <div class="logoleft">
     <div id="content">
-        <!--<img src="logo.jpg" class="logo" />-->
         <div style="display: flex;justify-content: center">
-            <img src="static/choerodon_logo_color.svg" class="pIcon"/>
+            <img th:if="${systemLogo}" th:src="${systemLogo}" style="height: 48px;"/>
+            <span th:if="${systemName}" th:text="${systemName}" class="pText" />
+            <span th:if="!${systemName}" th:text="Choerodon" class="pText" />
+            <img th:if="${systemLogo}==null and ${systemName}==null" src="../static/choerodon_logo_color.svg" class="pIcon"/>
         </div>
 
-        <!-- <div th:if="${param.logout}" class="alert alert-success">
-            您已成功登出。
-        </div> -->
         <div style="display: flex;justify-content: center;margin-top: 1.25rem;">
             <span style="font-size: 1.25rem;color: rgba(0,0,0,0.65);">登录</span>
         </div>
@@ -311,8 +293,6 @@
 
     </div>
 </div>
-<!-- <img src="../public/static/logo3.jpg" class="logoleft" /> -->
-
 
 <div style="position:absolute;z-index:999;bottom:1.875rem;color: rgba(0,0,0,0.43);font-size: 0.75rem;width: 100%;text-align: center;">
     Copyright © The choerodon Author®. All rights reserved.

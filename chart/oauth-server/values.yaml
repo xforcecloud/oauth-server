@@ -9,13 +9,13 @@ image:
   pullPolicy: Always
 
 preJob:
-  image: registry.cn-hangzhou.aliyuncs.com/choerodon-tools/dbtool:0.5.2
+  timeout: 300
+  image: registry.cn-hangzhou.aliyuncs.com/choerodon-tools/dbtool:0.5.6
   preConfig:
+    enable: true
     configFile: application.yml
-    mysql:
-      host: localhost
-      port: 3306
-      database: manager_service
+    datasource:
+      url: jdbc:mysql://localhost:3306/manager_service?useUnicode=true&characterEncoding=utf-8&useSSL=false
       username: username
       password: password
 
@@ -44,7 +44,8 @@ env:
     CHOERODON_DEFAULT_REDIRECT_URL: localhost:8080/manager/swagger-ui.html
     CHOERODON_OAUTH_LOGIN_PATH: /login
     CHOERODON_OAUTH_LOGIN_SSL: false
-
+    JAVA_OPTS: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
+    
 service:
   enable: false
   type: ClusterIP

@@ -18,9 +18,6 @@ import io.choerodon.mybatis.domain.AuditDomain;
 @VersionAudit
 @Table(name = "iam_user")
 public class UserDO extends AuditDomain {
-
-    public static final String EMAIL_REGULAR_EXPRESSION = "[\\w!#$%&'*+/=?^_`{|}~-]+(?:\\.[\\w!#$%&'*+/=?^_`{|}~-]+)*@(?:[\\w](?:[\\w-]*[\\w])?\\.)+[\\w](?:[\\w-]*[\\w])?";
-
     @Id
     @GeneratedValue
     private Long id;
@@ -51,6 +48,7 @@ public class UserDO extends AuditDomain {
 
     @Column(name = "is_admin")
     private Boolean admin;
+
 
     public Long getId() {
         return id;
@@ -124,6 +122,14 @@ public class UserDO extends AuditDomain {
         this.profilePhoto = profilePhoto;
     }
 
+    public Boolean getLdap() {
+        return ldap;
+    }
+
+    public void setLdap(Boolean ldap) {
+        this.ldap = ldap;
+    }
+
     public String getLanguage() {
         return language;
     }
@@ -180,12 +186,12 @@ public class UserDO extends AuditDomain {
         this.enabled = enabled;
     }
 
-    public Boolean getLdap() {
-        return ldap;
+    public Boolean getAdmin() {
+        return admin;
     }
 
-    public void setLdap(Boolean ldap) {
-        this.ldap = ldap;
+    public void setAdmin(Boolean admin) {
+        this.admin = admin;
     }
 
     public Boolean getLocked() {
@@ -196,11 +202,4 @@ public class UserDO extends AuditDomain {
         this.locked = locked;
     }
 
-    public Boolean getAdmin() {
-        return admin;
-    }
-
-    public void setAdmin(Boolean admin) {
-        this.admin = admin;
-    }
 }

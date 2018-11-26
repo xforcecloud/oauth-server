@@ -21,4 +21,5 @@ public class CustomAuthenticationException extends AuthenticationException {
     public Object[] getParameters() {
         return parameters;
     }
+
 }
