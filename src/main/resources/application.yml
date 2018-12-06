@@ -59,7 +59,7 @@ choerodon:
       field: mail,phone
       path: /oauth/login
       ssl: false
-    loginPage.title: Choerodon
+    loginPage.title: XforceCloud
   reset-password:
     check: true
   default:
