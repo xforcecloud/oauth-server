@@ -53,7 +53,7 @@ docker-build:
     fi
     source .auto_devops.sh
     function docker_build(){
-        DOCKER_REGISTRY=registry.cn-hangzhou.aliyuncs.com
+        DOCKER_REGISTRY=registry-vpc.cn-hangzhou.aliyuncs.com
         DOCKER_USER=youyf@1605435682286633
         DOCKER_PWD=Abcd12345
 
