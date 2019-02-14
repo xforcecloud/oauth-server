@@ -2,12 +2,18 @@ package io.choerodon.oauth.api.service.impl;
 
 import java.util.*;
 
+import com.netflix.discovery.converters.Auto;
+import feign.FeignException;
 import io.choerodon.core.notify.NoticeSendDTO;
+import io.choerodon.oauth.infra.dataobject.UserDO;
+import io.choerodon.oauth.infra.feign.GitlabServiceClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -47,6 +53,8 @@ public class PasswordForgetServiceImpl implements PasswordForgetService {
     private UserValidator userValidator;
     @Autowired
     private MessageSource messageSource;
+    @Autowired
+    private GitlabServiceClient gitlabServiceClient;
 
     public PasswordForgetServiceImpl(
             UserService userService,
@@ -73,6 +81,10 @@ public class PasswordForgetServiceImpl implements PasswordForgetService {
 
     public void setMessageSource(MessageSource messageSource) {
         this.messageSource = messageSource;
+    }
+
+    public void setGitlabServiceClient(GitlabServiceClient gitlabServiceClient) {
+        this.gitlabServiceClient = gitlabServiceClient;
     }
 
     @Override
@@ -165,6 +177,12 @@ public class PasswordForgetServiceImpl implements PasswordForgetService {
             passwordRecord.updatePassword(user.getId(), ENCODER.encode(password));
             passwordForgetDTO.setSuccess(true);
             passwordForgetDTO.setUser(new UserDTO(userE.getId(), userE.getLoginName(), user.getEmail()));
+
+            try {
+                gitlabServiceClient.updateGitLabUserPassword(Integer.valueOf(String.valueOf(user.getId())), password);
+            } catch (FeignException e) {
+                throw new CommonException(e);
+            }
 
             this.sendSiteMsg(user.getId(), user.getRealName());
             return passwordForgetDTO;
