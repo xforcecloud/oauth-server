@@ -3,8 +3,8 @@ package io.choerodon.oauth.infra.feign.fallback;
 import io.choerodon.core.exception.CommonException;
 import io.choerodon.oauth.infra.dataobject.UserDO;
 import io.choerodon.oauth.infra.feign.GitlabServiceClient;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 
 /**
  * 版权：    上海云砺信息科技有限公司
@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
  * 功能描述:
  * 修改历史:
  */
+@Component
 public class GitlabServiceClientFallback implements GitlabServiceClient {
 
     @Override
