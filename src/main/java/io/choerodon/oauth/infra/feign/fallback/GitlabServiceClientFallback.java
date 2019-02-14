@@ -1,0 +1,22 @@
+package io.choerodon.oauth.infra.feign.fallback;
+
+import io.choerodon.core.exception.CommonException;
+import io.choerodon.oauth.infra.dataobject.UserDO;
+import io.choerodon.oauth.infra.feign.GitlabServiceClient;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+/**
+ * 版权：    上海云砺信息科技有限公司
+ * 创建者:   youyifan
+ * 创建时间: 2/14/2019 4:54 PM
+ * 功能描述:
+ * 修改历史:
+ */
+public class GitlabServiceClientFallback implements GitlabServiceClient {
+
+    @Override
+    public ResponseEntity<UserDO> updateGitLabUserPassword(Integer userId, String password) {
+        throw new CommonException("error.GitlabUser.update.password");
+    }
+}
