@@ -6,7 +6,7 @@ import com.netflix.discovery.converters.Auto;
 import feign.FeignException;
 import io.choerodon.core.notify.NoticeSendDTO;
 import io.choerodon.oauth.infra.dataobject.UserDO;
-import io.choerodon.oauth.infra.feign.GitlabServiceClient;
+import io.choerodon.oauth.infra.feign.DevopsServiceClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -54,7 +54,7 @@ public class PasswordForgetServiceImpl implements PasswordForgetService {
     @Autowired
     private MessageSource messageSource;
     @Autowired
-    private GitlabServiceClient gitlabServiceClient;
+    private DevopsServiceClient devopsServiceClient;
 
     public PasswordForgetServiceImpl(
             UserService userService,
@@ -83,8 +83,8 @@ public class PasswordForgetServiceImpl implements PasswordForgetService {
         this.messageSource = messageSource;
     }
 
-    public void setGitlabServiceClient(GitlabServiceClient gitlabServiceClient) {
-        this.gitlabServiceClient = gitlabServiceClient;
+    public void setDevopsServiceClient(DevopsServiceClient devopsServiceClient) {
+        this.devopsServiceClient = devopsServiceClient;
     }
 
     @Override
@@ -179,7 +179,8 @@ public class PasswordForgetServiceImpl implements PasswordForgetService {
             passwordForgetDTO.setUser(new UserDTO(userE.getId(), userE.getLoginName(), user.getEmail()));
 
             try {
-                gitlabServiceClient.updateGitLabUserPassword(Integer.valueOf(String.valueOf(user.getId())), password);
+                LOGGER.info(String.format("user:%s reset gitlab password start", user.getEmail()));
+                devopsServiceClient.updateUserPassword(Integer.valueOf(String.valueOf(user.getId())), password);
             } catch (FeignException e) {
                 throw new CommonException(e);
             }

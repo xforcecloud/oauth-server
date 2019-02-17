@@ -2,7 +2,7 @@ package io.choerodon.oauth.infra.feign.fallback;
 
 import io.choerodon.core.exception.CommonException;
 import io.choerodon.oauth.infra.dataobject.UserDO;
-import io.choerodon.oauth.infra.feign.GitlabServiceClient;
+import io.choerodon.oauth.infra.feign.DevopsServiceClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
@@ -14,10 +14,10 @@ import org.springframework.stereotype.Component;
  * 修改历史:
  */
 @Component
-public class GitlabServiceClientFallback implements GitlabServiceClient {
+public class DevopsServiceClientFallback implements DevopsServiceClient {
 
     @Override
-    public ResponseEntity<UserDO> updateGitLabUserPassword(Integer userId, String password) {
+    public ResponseEntity<UserDO> updateUserPassword(Integer userId, String password) {
         throw new CommonException("error.GitlabUser.update.password");
     }
 }
