@@ -18,6 +18,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(value = "devops-service", path = "/v1/devops", fallback = DevopsServiceClientFallback.class)
 public interface DevopsServiceClient {
     @PutMapping("/v1/users/{userId}/password")
-    ResponseEntity<UserDO> updateUserPassword(@PathVariable("userId") Integer userId,
+    void updateUserPassword(@PathVariable("userId") Integer userId,
                                               @RequestParam(value = "password") String password);
 }

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 public class DevopsServiceClientFallback implements DevopsServiceClient {
 
     @Override
-    public ResponseEntity<UserDO> updateUserPassword(Integer userId, String password) {
+    public void updateUserPassword(Integer userId, String password) {
         throw new CommonException("error.GitlabUser.update.password");
     }
 }
