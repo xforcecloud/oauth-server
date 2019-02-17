@@ -159,8 +159,26 @@ class App extends window.React.Component {
       errorMsg: '验证码错误',
     };
   }
+
+  fixCheckPassword = (value) => {
+    let len = 0;
+    for (let i = 0; i < value.length; i += 1) {
+        const a = value.charAt(i);
+        if (a.match(/[^\x00-\xff]/ig) != null) {
+            len += 2;
+        } else {
+            len += 1;
+        }
+    }
+    return len < 8
+  }
+
   checkPassword = (passwordPolicy, value, userName) => {
     let compareResult = '';
+    if(this.fixCheckPassword(value)) {
+      return '密码长度至少为8';
+    }
+
     if (passwordPolicy) {
       const {
         enablePassword: check, minLength, maxLength,
