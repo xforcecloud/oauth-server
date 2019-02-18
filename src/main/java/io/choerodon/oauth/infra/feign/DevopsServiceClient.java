@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RequestParam;
  * 功能描述:
  * 修改历史:
  */
-@FeignClient(value = "devops-service", path = "/v1/devops", fallback = DevopsServiceClientFallback.class)
+@FeignClient(value = "devops-service", fallback = DevopsServiceClientFallback.class)
 public interface DevopsServiceClient {
-    @PutMapping("/users/{userId}/password")
+    @PutMapping("/v1/users/{userId}/password")
     void updateUserPassword(@PathVariable("userId") Integer userId,
                                               @RequestParam(value = "password") String password);
 }
