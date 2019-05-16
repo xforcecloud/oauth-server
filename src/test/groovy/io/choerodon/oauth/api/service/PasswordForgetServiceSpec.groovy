@@ -5,6 +5,7 @@ import io.choerodon.oauth.IntegrationTestConfiguration
 import io.choerodon.oauth.api.dto.PasswordForgetDTO
 import io.choerodon.oauth.api.dto.UserDTO
 import io.choerodon.oauth.api.service.impl.PasswordForgetServiceImpl
+import io.choerodon.oauth.api.validator.UserPasswordValidator
 import io.choerodon.oauth.api.validator.UserValidator
 import io.choerodon.oauth.core.password.PasswordPolicyManager
 import io.choerodon.oauth.core.password.mapper.BasePasswordPolicyMapper
@@ -35,9 +36,10 @@ class PasswordForgetServiceSpec extends Specification {
     private RedisTokenUtil mockRedisTokenUtil = Mock(RedisTokenUtil)
     private UserValidator mockUserValidator = Mock(UserValidator)
     private MessageSource mockMessageSource = Mock(MessageSource)
+    private UserPasswordValidator mockUserPasswordValidator = Mock(UserPasswordValidator)
 
     void setup() {
-        passwordForgetService = new PasswordForgetServiceImpl(mockUserService, mockBasePasswordPolicyMapper, mockPasswordPolicyManager, mockPasswordRecord)
+        passwordForgetService = new PasswordForgetServiceImpl(mockUserService, mockBasePasswordPolicyMapper, mockPasswordPolicyManager, mockUserPasswordValidator, mockPasswordRecord)
         passwordForgetService.setNotifyFeignClient(mockNotifyFeignClient)
         passwordForgetService.setRedisTokenUtil(mockRedisTokenUtil)
         passwordForgetService.setUserValidator(mockUserValidator)
@@ -143,8 +145,7 @@ class PasswordForgetServiceSpec extends Specification {
         noExceptionThrown()
         1 * mockPasswordPolicyManager.passwordValidate(_, _, _)
         1 * mockRedisTokenUtil.expire(_, _)
-        1 * mockBasePasswordPolicyMapper.selectByPrimaryKey(_)
-        1 * mockBasePasswordPolicyMapper.findByOrgId(_)
+        1 * mockBasePasswordPolicyMapper.selectOne(_)
         num * mockPasswordRecord.updatePassword(_, _)
 
         where: "分支覆盖"
@@ -172,7 +173,6 @@ class PasswordForgetServiceSpec extends Specification {
         then: "无异常抛出，方法调用如下"
         thrown(NoTransactionException)
         1 * mockRedisTokenUtil.expire(_, _)
-        1 * mockBasePasswordPolicyMapper.selectByPrimaryKey(_)
-        1 * mockBasePasswordPolicyMapper.findByOrgId(_)
+        1 * mockBasePasswordPolicyMapper.selectOne(_)
     }
 }

@@ -3,6 +3,7 @@ package io.choerodon.oauth.api.service.impl;
 import java.util.*;
 
 import io.choerodon.core.notify.NoticeSendDTO;
+import io.choerodon.oauth.api.validator.UserPasswordValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -35,6 +36,8 @@ import io.choerodon.oauth.infra.feign.NotifyFeignClient;
 public class PasswordForgetServiceImpl implements PasswordForgetService {
     private static final Logger LOGGER = LoggerFactory.getLogger(PasswordForgetServiceImpl.class);
     private static final BCryptPasswordEncoder ENCODER = new BCryptPasswordEncoder();
+    public static final String FORGET_PASSWORD = "forgetPassword";
+    public static final String MODIFY_PASSWORD = "modifyPassword";
     private UserService userService;
     private BasePasswordPolicyMapper basePasswordPolicyMapper;
     private PasswordPolicyManager passwordPolicyManager;
@@ -47,16 +50,19 @@ public class PasswordForgetServiceImpl implements PasswordForgetService {
     private UserValidator userValidator;
     @Autowired
     private MessageSource messageSource;
+    private final UserPasswordValidator userPasswordValidator;
 
     public PasswordForgetServiceImpl(
             UserService userService,
             BasePasswordPolicyMapper basePasswordPolicyMapper,
             PasswordPolicyManager passwordPolicyManager,
+            UserPasswordValidator userPasswordValidator,
             PasswordRecord passwordRecord) {
         this.userService = userService;
         this.basePasswordPolicyMapper = basePasswordPolicyMapper;
         this.passwordPolicyManager = passwordPolicyManager;
         this.passwordRecord = passwordRecord;
+        this.userPasswordValidator = userPasswordValidator;
     }
 
     public void setNotifyFeignClient(NotifyFeignClient notifyFeignClient) {
@@ -119,7 +125,7 @@ public class PasswordForgetServiceImpl implements PasswordForgetService {
         user.setEmail(passwordForgetDTO.getUser().getEmail());
         List<NoticeSendDTO.User> users = new ArrayList<>();
         users.add(user);
-        noticeSendDTO.setCode("forgetPassword");
+        noticeSendDTO.setCode(FORGET_PASSWORD);
         noticeSendDTO.setTargetUsers(users);
         noticeSendDTO.setParams(variables);
         try {
@@ -149,9 +155,11 @@ public class PasswordForgetServiceImpl implements PasswordForgetService {
             BaseUserDO baseUserDO = new BaseUserDO();
             BeanUtils.copyProperties(user, baseUserDO);
             baseUserDO.setPassword(password);
-            BasePasswordPolicyDO basePasswordPolicyDO
-                    = basePasswordPolicyMapper.selectByPrimaryKey(basePasswordPolicyMapper.findByOrgId(user.getOrganizationId()));
+            BasePasswordPolicyDO basePasswordPolicyDO = new BasePasswordPolicyDO();
+            basePasswordPolicyDO.setOrganizationId(user.getOrganizationId());
+            basePasswordPolicyDO = basePasswordPolicyMapper.selectOne(basePasswordPolicyDO);
             passwordPolicyManager.passwordValidate(password, baseUserDO, basePasswordPolicyDO);
+            userPasswordValidator.validate(password, user.getOrganizationId(), true);
         } catch (CommonException e) {
             LOGGER.error(e.getMessage());
             passwordForgetDTO.setSuccess(false);
@@ -196,9 +204,8 @@ public class PasswordForgetServiceImpl implements PasswordForgetService {
         user.setId(userId);
         List<NoticeSendDTO.User> users = new ArrayList<>();
         users.add(user);
-        noticeSendDTO.setCode("modifyPassword");
+        noticeSendDTO.setCode(MODIFY_PASSWORD);
         noticeSendDTO.setTargetUsers(users);
-        noticeSendDTO.setParams(paramsMap);
         try {
             notifyFeignClient.postNotice(noticeSendDTO);
         } catch (CommonException e) {
