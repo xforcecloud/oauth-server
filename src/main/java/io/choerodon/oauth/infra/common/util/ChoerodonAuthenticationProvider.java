@@ -139,7 +139,7 @@ public class ChoerodonAuthenticationProvider extends AbstractUserDetailsAuthenti
             baseUserService.lockUser(baseUser.getId(), lockExpireTime);
             user = userService.queryByLoginField(username);
         }
-        if (!user.getEnabled()) {
+        if (Boolean.FALSE.equals(user.getEnabled())) {
             throw new AuthenticationServiceException(LoginException.USER_IS_NOT_ACTIVATED.value());
         }
         //判断用户是否被锁
@@ -181,7 +181,7 @@ public class ChoerodonAuthenticationProvider extends AbstractUserDetailsAuthenti
             passwordPolicy = basePasswordPolicyMapper.selectOne(passwordPolicy);
             BaseUserDTO baseUser = new BaseUserDTO();
             BeanUtils.copyProperties(user, baseUser);
-            if (passwordPolicyManager.isNeedCaptcha(passwordPolicy, baseUser)) {
+            if (Boolean.TRUE.equals(passwordPolicyManager.isNeedCaptcha(passwordPolicy, baseUser))) {
                 if (captchaCode == null || captcha == null || "".equals(captcha)) {
                     throw new AuthenticationServiceException(LoginException.CAPTCHA_IS_NULL.value());
                 } else if (!captchaCode.equalsIgnoreCase(captcha)) {
@@ -195,7 +195,7 @@ public class ChoerodonAuthenticationProvider extends AbstractUserDetailsAuthenti
     private void checkPassword(String loginName, String credentials, String userPassword) {
         boolean passed;
         UserE user = userService.queryByLoginField(loginName);
-        if (user.getLdap()) {
+        if (Boolean.TRUE.equals(user.getLdap())) {
             passed = ldapAuthentication(user.getOrganizationId(), loginName, credentials);
         } else {
             BCryptPasswordEncoder encode = new BCryptPasswordEncoder();
@@ -334,7 +334,7 @@ public class ChoerodonAuthenticationProvider extends AbstractUserDetailsAuthenti
         if (null == organization) {
             throw new AuthenticationServiceException(LoginException.ORGANIZATION_NOT_EXIST.value());
         }
-        if (!organization.getEnabled()) {
+        if (Boolean.FALSE.equals(organization.getEnabled())) {
             throw new AuthenticationServiceException(LoginException.ORGANIZATION_NOT_ENABLE.value());
         }
     }

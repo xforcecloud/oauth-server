@@ -11,8 +11,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedHashMap;
@@ -26,7 +26,7 @@ import java.util.TreeSet;
 @Service
 public class ChoerodonAuthenticationKeyGenerator implements AuthenticationKeyGenerator {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthenticationKeyGenerator.class);
+    private static final Logger logger = LoggerFactory.getLogger(ChoerodonAuthenticationKeyGenerator.class);
 
     private static final String CLIENT_ID = "client_id";
 
@@ -62,12 +62,10 @@ public class ChoerodonAuthenticationKeyGenerator implements AuthenticationKeyGen
         MessageDigest digest;
         try {
             digest = MessageDigest.getInstance("MD5");
-            byte[] bytes = digest.digest(values.toString().getBytes("UTF-8"));
+            byte[] bytes = digest.digest(values.toString().getBytes(StandardCharsets.UTF_8));
             return String.format("%032x", new BigInteger(1, bytes));
         } catch (NoSuchAlgorithmException nsae) {
             throw new IllegalStateException("MD5 algorithm not available.  Fatal (should be in the JDK).", nsae);
-        } catch (UnsupportedEncodingException uee) {
-            throw new IllegalStateException("UTF-8 encoding not available.  Fatal (should be in the JDK).", uee);
         }
     }
 }

@@ -1,13 +1,11 @@
 package io.choerodon.oauth.api.controller.v1;
 
-import io.choerodon.oauth.api.dto.CaptchaCheckDTO;
 import io.choerodon.oauth.api.dto.PasswordForgetDTO;
 import io.choerodon.oauth.api.service.PasswordForgetService;
 import io.choerodon.oauth.api.service.PasswordPolicyService;
 import io.choerodon.oauth.api.service.SystemSettingService;
 import io.choerodon.oauth.api.service.UserService;
 import io.choerodon.oauth.api.vo.SysSettingVO;
-import io.choerodon.oauth.infra.dataobject.PasswordPolicyDO;
 import io.choerodon.oauth.infra.enums.PageUrlEnum;
 import io.choerodon.oauth.infra.enums.PasswordFindException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +13,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;

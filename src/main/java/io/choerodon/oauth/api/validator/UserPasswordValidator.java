@@ -49,7 +49,7 @@ public class UserPasswordValidator {
             return true;
         }
 
-        password = password.replaceAll(" ", "");
+        password = password.replaceAll("\\ ", "");
         if (password.length() < setting.getMinPasswordLength() || password.length() > setting.getMaxPasswordLength()) {
             if (isToThrowException) {
                 throw new CommonException("error.password.length.out.of.setting", setting.getMinPasswordLength(), setting.getMaxPasswordLength());

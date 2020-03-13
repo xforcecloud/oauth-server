@@ -78,9 +78,7 @@ public class CustomTokenStore extends JdbcTokenStore {
         HashMap<String, Object> additionalInfo = new HashMap<>();
         ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
         String sessionId = "";
-        if (attr != null) {
-            sessionId = attr.getRequest().getSession(true).getId();
-        }
+        sessionId = attr.getRequest().getSession(true).getId();
         additionalInfo.put("createTime", new Date());
         additionalInfo.put("sessionId", sessionId);
         ((DefaultOAuth2AccessToken) token).setAdditionalInformation(additionalInfo);

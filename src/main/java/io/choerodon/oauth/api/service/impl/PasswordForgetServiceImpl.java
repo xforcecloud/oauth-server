@@ -39,8 +39,8 @@ import java.util.concurrent.TimeUnit;
 public class PasswordForgetServiceImpl implements PasswordForgetService {
     private static final Logger LOGGER = LoggerFactory.getLogger(PasswordForgetServiceImpl.class);
     private static final BCryptPasswordEncoder ENCODER = new BCryptPasswordEncoder();
-    public static final String FORGET_PASSWORD = "forgetPassword";
-    public static final String MODIFY_PASSWORD = "modifyPassword";
+    public static final String FORGET = "forgetPassword";   // 忘记密码消息code
+    public static final String MODIFY = "modifyPassword";   // 修改密码消息code
     public static final String RESET_PAGE = "/oauth/password/reset_page";
     private UserService userService;
     private BasePasswordPolicyMapper basePasswordPolicyMapper;
@@ -174,7 +174,7 @@ public class PasswordForgetServiceImpl implements PasswordForgetService {
         user.setEmail(passwordForgetDTO.getUser().getEmail());
         List<NoticeSendDTO.User> users = new ArrayList<>();
         users.add(user);
-        noticeSendDTO.setCode(FORGET_PASSWORD);
+        noticeSendDTO.setCode(FORGET);
         noticeSendDTO.setTargetUsers(users);
         noticeSendDTO.setParams(variables);
         try {
@@ -250,7 +250,7 @@ public class PasswordForgetServiceImpl implements PasswordForgetService {
         user.setId(userId);
         List<NoticeSendDTO.User> users = new ArrayList<>();
         users.add(user);
-        noticeSendDTO.setCode(MODIFY_PASSWORD);
+        noticeSendDTO.setCode(MODIFY);
         noticeSendDTO.setTargetUsers(users);
         try {
             notifyFeignClient.postNotice(noticeSendDTO);
