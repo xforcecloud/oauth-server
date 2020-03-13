@@ -1,19 +1,19 @@
 package io.choerodon.oauth.api.controller.v1;
 
-import java.awt.image.BufferedImage;
-import java.security.Principal;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import javax.imageio.ImageIO;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import com.google.code.kaptcha.impl.DefaultKaptcha;
 import io.choerodon.core.oauth.CustomUserDetails;
 import io.choerodon.core.oauth.DetailsHelper;
+import io.choerodon.oauth.api.service.PrincipalService;
+import io.choerodon.oauth.api.service.SystemSettingService;
+import io.choerodon.oauth.api.service.UserService;
+import io.choerodon.oauth.api.vo.SysSettingVO;
+import io.choerodon.oauth.core.password.PasswordPolicyManager;
+import io.choerodon.oauth.core.password.domain.BasePasswordPolicyDTO;
+import io.choerodon.oauth.core.password.domain.BaseUserDTO;
+import io.choerodon.oauth.core.password.mapper.BasePasswordPolicyMapper;
+import io.choerodon.oauth.domain.entity.UserE;
+import io.choerodon.oauth.infra.enums.LoginException;
+import io.choerodon.oauth.infra.enums.ReturnPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -26,21 +26,19 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import io.choerodon.oauth.api.service.PrincipalService;
-import io.choerodon.oauth.api.service.SystemSettingService;
-import io.choerodon.oauth.api.service.UserService;
-import io.choerodon.oauth.api.vo.SysSettingVO;
-import io.choerodon.oauth.core.password.PasswordPolicyManager;
-import io.choerodon.oauth.core.password.domain.BasePasswordPolicyDTO;
-import io.choerodon.oauth.core.password.domain.BaseUserDTO;
-import io.choerodon.oauth.core.password.mapper.BasePasswordPolicyMapper;
-import io.choerodon.oauth.domain.entity.UserE;
-import io.choerodon.oauth.infra.enums.LoginException;
-import io.choerodon.oauth.infra.enums.ReturnPage;
+import javax.imageio.ImageIO;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.awt.image.BufferedImage;
+import java.security.Principal;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 
 /**
@@ -185,7 +183,7 @@ public class OauthController {
         }
     }
 
-    @RequestMapping(value = "/public/captcha")
+    @GetMapping(value = "/public/captcha")
     public void createCaptcha(HttpServletRequest request,
                               HttpServletResponse response) {
         response.setDateHeader("Expires", 0);
@@ -216,7 +214,7 @@ public class OauthController {
     }
 
     @ResponseBody
-    @RequestMapping("/api/user")
+    @GetMapping("/api/user")
     public Principal user(Principal principal) {
         if (((OAuth2Authentication) principal).getPrincipal() instanceof String) {
             return principalService.setClientDetailUserDetails(principal);

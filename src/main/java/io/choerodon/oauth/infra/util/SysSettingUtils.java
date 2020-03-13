@@ -13,6 +13,10 @@ import io.choerodon.oauth.infra.enums.SysSettingEnum;
 
 public class SysSettingUtils {
 
+    private SysSettingUtils() {
+        throw new IllegalStateException("Utility class");
+    }
+
     /**
      * 系统配置列表转为系统配置Map
      *

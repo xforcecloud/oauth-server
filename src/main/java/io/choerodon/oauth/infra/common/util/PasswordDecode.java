@@ -4,6 +4,10 @@ import java.io.ByteArrayOutputStream;
 
 public class PasswordDecode {
 
+    private PasswordDecode() {
+        throw new IllegalStateException("Utility class");
+    }
+
     private static byte[] base64DecodeChars = new byte[]{-1, -1, -1, -1, -1,
             -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
             -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -19,7 +23,10 @@ public class PasswordDecode {
         int len = data.length;
         ByteArrayOutputStream buf = new ByteArrayOutputStream(len);
         int i = 0;
-        int b1, b2, b3, b4;
+        int b1;
+        int b2;
+        int b3;
+        int b4;
 
         while (i < len) {
             do {

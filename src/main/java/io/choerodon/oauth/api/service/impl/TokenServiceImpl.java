@@ -47,7 +47,7 @@ public class TokenServiceImpl implements TokenService {
             throw new CommonException("error.delete.token.not.exist");
         }
         //提取sessionId
-        DefaultOAuth2AccessToken deserialize = (DefaultOAuth2AccessToken) SerializationUtils.deserialize(accessTokenDO.getToken());
+        DefaultOAuth2AccessToken deserialize = SerializationUtils.deserialize(accessTokenDO.getToken());
         //删除redis session
         redisTemplate.delete(SESSION_KEY_PREFIX + deserialize.getAdditionalInformation().get("sessionId"));
         //删除db accessToken/refreshToken

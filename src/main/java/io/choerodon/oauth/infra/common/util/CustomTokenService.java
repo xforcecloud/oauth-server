@@ -1,7 +1,6 @@
 package io.choerodon.oauth.infra.common.util;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
@@ -25,7 +24,7 @@ public class CustomTokenService extends DefaultTokenServices {
 
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE, propagation = Propagation.REQUIRES_NEW)
-    public OAuth2AccessToken createAccessToken(OAuth2Authentication authentication) throws AuthenticationException {
+    public OAuth2AccessToken createAccessToken(OAuth2Authentication authentication) {
         return super.createAccessToken(authentication);
     }
 
