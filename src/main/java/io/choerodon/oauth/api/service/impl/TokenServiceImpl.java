@@ -76,7 +76,7 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public void deleteList(List<String> tokenList) {
-        tokenList.forEach(t -> deleteOne(t));
+        tokenList.forEach(this::deleteOne);
     }
 
 }
